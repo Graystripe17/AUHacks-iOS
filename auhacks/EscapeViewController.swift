@@ -22,10 +22,13 @@ class EscapeViewController: UIViewController {
     var locationManager = CLLocationManager()
     var currentLocation: CLLocation?
     var mapView: GMSMapView!
+    let camera = GMSCameraPosition.camera(withLatitude: -33.86, longitude: 151.20, zoom: 6.0)
     var placesClient: GMSPlacesClient!
     var zoomLevel: Float = 15.0
     var likelyPlaces: [GMSPlace] = []
     var selectedPlace: GMSPlace?
+
+    let marker = GMSMarker()
     
     override func viewDidLoad() {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
@@ -33,53 +36,71 @@ class EscapeViewController: UIViewController {
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         locationManager.delegate = self
+        //mapView.delegate = self
         placesClient = GMSPlacesClient.shared()
         startReceivingLocationChanges()
     }
+
     
     override func loadView() {
-        let urlString = URL(string: "https://auhacks.herokuapp.com/api/")
-        if let url = urlString {
-            let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
-                if error != nil {
-                    print(data)
-                    let decoder = JSONDecoder()
-                    let location = try! decoder.decode(Location.self, from: data!)
-                }
-            }
-            task.resume()
-        }
+//        let urlString = URL(string: "https://auhacks.herokuapp.com/api/")
+//        if let url = urlString {
+//            let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+//                if error != nil {
+//                    print(data)
+//                    let decoder = JSONDecoder()
+//                    let location = try! decoder.decode(Location.self, from: data!)
+//                }
+//            }
+//            task.resume()
+//        }
 
 
-//        let camera = GMSCameraPosition.camera(withLatitude: -33.86, longitude: 151.20, zoom: 6.0)
-//        let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
-//        view = mapView
-//
-//        let marker = GMSMarker()
-//        marker.position = CLLocationCoordinate2D(latitude: -33.86, longitude: 151.20)
-//        marker.title = "Sydney"
-//        marker.snippet = "Australia"
-//        marker.map = mapView
+        mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
+        self.view = mapView
+
+
+        marker.position = CLLocationCoordinate2D(latitude: -33.86, longitude: 151.20)
+        marker.title = "Sydney"
+        marker.snippet = "Australia"
+        marker.map = mapView
 
     }
+
+
+}
+
+extension EscapeViewController: MKMapViewDelegate {
 
 }
 
 extension EscapeViewController: CLLocationManagerDelegate {
     // Handle incoming location events.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        let location: CLLocation = locations.last!
-        print("Location: \(location)")
+
+        print("Delegate called")
+
+        let location = locations.last
+
+        let camera = GMSCameraPosition.camera(withLatitude: (location?.coordinate.latitude)!, longitude: (location?.coordinate.longitude)!, zoom: 17.0)
+
+        self.mapView?.animate(to: camera)
         
-        let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude, longitude: location.coordinate.longitude, zoom: zoomLevel)
-        
-        if mapView.isHidden {
-            mapView.isHidden = false
-            mapView.camera = camera
-        } else {
-            mapView.animate(to: camera)
-        }
-        
+//        let location: CLLocation = locations.last!
+//        print("Location: \(location)")
+//
+//        //let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude, longitude: location.coordinate.longitude, zoom: zoomLevel)
+//        let camera = GMSCameraPosition.camera(withLatitude: 234, longitude: 2314, zoom: zoomLevel)
+//        let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
+//        self.view = mapView
+//
+//        if mapView.isHidden {
+//            mapView.isHidden = false
+//            mapView.camera = camera
+//        } else {
+//            mapView.animate(to: camera)
+//        }
+
     }
     
     // Handle authorization for the location manager.
